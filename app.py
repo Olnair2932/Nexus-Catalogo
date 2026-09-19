@@ -140,6 +140,83 @@ class CatalogoHandler(SimpleHTTPRequestHandler):
         self.wfile.write(resposta)
 
 
+    def do_DELETE(self):
+
+        prefixo = "/api/anuncios/"
+
+        if not self.path.startswith(prefixo):
+            self.send_error(404, "Rota não encontrada")
+            return
+
+        anuncio_id = self.path[len(prefixo):].strip("/")
+
+        if not anuncio_id:
+            self.send_error(400, "ID do anúncio não informado")
+            return
+
+        arquivo_dados = BASE / "dados" / "anuncios.json"
+
+        try:
+            anuncios = json.loads(
+                arquivo_dados.read_text(encoding="utf-8")
+            )
+
+            if not isinstance(anuncios, list):
+                anuncios = []
+
+        except Exception:
+            anuncios = []
+
+        encontrados = [
+            anuncio for anuncio in anuncios
+            if str(anuncio.get("id", "")) == anuncio_id
+        ]
+
+        if not encontrados:
+            self.send_error(404, "Anúncio não encontrado")
+            return
+
+        anuncios = [
+            anuncio for anuncio in anuncios
+            if str(anuncio.get("id", "")) != anuncio_id
+        ]
+
+        arquivo_dados.write_text(
+            json.dumps(
+                anuncios,
+                ensure_ascii=False,
+                indent=2
+            ),
+            encoding="utf-8"
+        )
+
+        pasta_anuncio = BASE / "anuncios" / anuncio_id
+
+        if pasta_anuncio.exists():
+            import shutil
+            shutil.rmtree(pasta_anuncio)
+
+        resposta = json.dumps(
+            {
+                "ok": True,
+                "mensagem": "Anúncio excluído com sucesso."
+            },
+            ensure_ascii=False
+        ).encode("utf-8")
+
+        self.send_response(200)
+        self.send_header(
+            "Content-Type",
+            "application/json; charset=utf-8"
+        )
+        self.send_header(
+            "Content-Length",
+            str(len(resposta))
+        )
+        self.end_headers()
+        self.wfile.write(resposta)
+
+
     def do_GET(self):
 
         if self.path == "/api/anuncios":

@@ -304,6 +304,12 @@ async function carregarAnuncios() {
                     👁️ ABRIR ANÚNCIO
                 </button>
 
+                <button
+                    class="abrir"
+                    onclick="excluirAnuncio('${anuncio.id}')">
+                    🗑️ EXCLUIR
+                </button>
+
             </article>
         `).join("");
 
@@ -343,6 +349,51 @@ function fecharFormulario() {
 function abrirAnuncio(id) {
 
     window.location.href = "/anuncios/" + id + "/";
+}
+
+
+async function excluirAnuncio(id) {
+
+    const confirmar = confirm(
+        "Tem certeza que deseja excluir este anúncio?"
+    );
+
+    if (!confirmar) {
+        return;
+    }
+
+    try {
+
+        const resposta = await fetch(
+            "/api/anuncios/" + id,
+            {
+                method: "DELETE"
+            }
+        );
+
+        const resultado = await resposta.json();
+
+        if (!resposta.ok || !resultado.ok) {
+            throw new Error(
+                resultado.message ||
+                resultado.error ||
+                "Não foi possível excluir o anúncio."
+            );
+        }
+
+        alert("✅ Anúncio excluído com sucesso.");
+
+        carregarAnuncios();
+
+    } catch (erro) {
+
+        console.error(erro);
+
+        alert(
+            "❌ Não foi possível excluir o anúncio.\n\n" +
+            erro.message
+        );
+    }
 }
 
 
