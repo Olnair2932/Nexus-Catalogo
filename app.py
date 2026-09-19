@@ -231,6 +231,29 @@ class CatalogoHandler(SimpleHTTPRequestHandler):
             codigo = str(dados.get("codigo", "")).strip()
             descricao = str(dados.get("descricao", "")).strip()
             contato = str(dados.get("contato", "")).strip()
+            fotos = str(dados.get("fotos", "")).strip()
+
+            lista_fotos = [
+                foto.strip()
+                for foto in fotos.split(",")
+                if foto.strip()
+            ]
+
+            if lista_fotos:
+                foto_principal = lista_fotos[0]
+
+                html = html.replace(
+                    "https://via.placeholder.com/600x400",
+                    foto_principal,
+                    1
+                )
+
+                for foto in lista_fotos[:4]:
+                    html = html.replace(
+                        "https://via.placeholder.com/100",
+                        foto,
+                        1
+                    )
 
             html = html.replace(
                 "Smartphone Galaxy A54 128 GB",
