@@ -58,6 +58,7 @@
 <script>
     const produto = "{{NOME_ANUNCIO}}";
     const preco = "{{PRECO_ANUNCIO}}";
+    const codigo = "{{CODIGO_ANUNCIO}}";
     
     function compartilhar() {
         if (navigator.share) {
@@ -69,8 +70,13 @@
     }
 
     function abrirWA() {
-        const msg = encodeURIComponent(`Olá, tenho interesse no ${produto} de ${preco}.`);
-        window.open(`https://wa.me/{{CONTATO_ANUNCIO}}?text=${msg}`);
+        const msg = encodeURIComponent(
+            `Olá, tenho interesse no produto ${produto}, código ${codigo}, no valor de ${preco}.`
+        );
+
+        window.open(
+            `https://wa.me/{{CONTATO_ANUNCIO}}?text=${msg}`
+        );
     }
 
     async function copiarParaIA() {

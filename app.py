@@ -386,6 +386,10 @@ class CatalogoHandler(SimpleHTTPRequestHandler):
             produto = nome
             preco = str(dados.get("preco", "")).strip()
             codigo = str(dados.get("codigo", "")).strip()
+
+            if not codigo:
+                codigo = f"ANUNCIO-{anuncio_id.upper()}"
+
             descricao = str(dados.get("descricao", "")).strip()
             contato = str(dados.get("contato", "")).strip()
             fotos = str(dados.get("fotos", "")).strip()
@@ -439,13 +443,20 @@ class CatalogoHandler(SimpleHTTPRequestHandler):
                 "{{DESCRICAO_ANUNCIO}}",
                 descricao
             )
+            numero_whatsapp = "".join(
+                caractere
+                for caractere in contato
+                if caractere.isdigit()
+            )
+
+            if numero_whatsapp.startswith("55"):
+                numero_whatsapp = numero_whatsapp[2:]
+
+            numero_whatsapp = "55" + numero_whatsapp
+
             html = html.replace(
                 "{{CONTATO_ANUNCIO}}",
-                "".join(
-                    caractere
-                    for caractere in contato
-                    if caractere.isdigit()
-                )
+                numero_whatsapp
             )
             html = html.replace(
                 "{{VIDEO_ANUNCIO}}",
@@ -698,6 +709,9 @@ class CatalogoHandler(SimpleHTTPRequestHandler):
                         anuncio.get("codigo", "")
                     ).strip()
 
+                    if not codigo:
+                        codigo = f"ANUNCIO-{anuncio_id.upper()}"
+
                     condicao = str(
                         anuncio.get("condicao", "")
                     ).strip()
@@ -758,13 +772,20 @@ class CatalogoHandler(SimpleHTTPRequestHandler):
                         "{{DESCRICAO_ANUNCIO}}",
                         descricao
                     )
+                    numero_whatsapp = "".join(
+                        caractere
+                        for caractere in contato
+                        if caractere.isdigit()
+                    )
+
+                    if numero_whatsapp.startswith("55"):
+                        numero_whatsapp = numero_whatsapp[2:]
+
+                    numero_whatsapp = "55" + numero_whatsapp
+
                     html = html.replace(
                         "{{CONTATO_ANUNCIO}}",
-                        "".join(
-                            caractere
-                            for caractere in contato
-                            if caractere.isdigit()
-                        )
+                        numero_whatsapp
                     )
                     html = html.replace(
                         "{{VIDEO_ANUNCIO}}",
