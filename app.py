@@ -3,7 +3,7 @@ from pathlib import Path
 import json
 import os
 
-BASE = Path.home() / "bsearch-catalogo"
+BASE = Path(__file__).resolve().parent
 HOST = "0.0.0.0"
 PORT = int(os.environ.get("PORT", "8090"))
 
