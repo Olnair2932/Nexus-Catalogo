@@ -3,6 +3,11 @@ from pathlib import Path
 import json
 import os
 import uuid
+import base64
+import urllib.parse
+import urllib.request
+from email.parser import BytesParser
+from email.policy import default
 import firebase_admin
 from firebase_admin import credentials, db
 
@@ -28,9 +33,166 @@ if FIREBASE_SERVICE_ACCOUNT_JSON:
     )
 
 
+def enviar_imagem_cloudinary(nome_arquivo, conteudo):
+    cloudinary_url = os.environ.get("CLOUDINARY_URL")
+
+    if not cloudinary_url:
+        raise RuntimeError("CLOUDINARY_URL não configurada")
+
+    dados_url = cloudinary_url.replace(
+        "cloudinary://",
+        "",
+        1
+    )
+
+    credenciais, cloud_name = dados_url.split("@", 1)
+    api_key, api_secret = credenciais.split(":", 1)
+
+    timestamp = str(int(__import__("time").time()))
+
+    assinatura_base = (
+        f"timestamp={timestamp}{api_secret}"
+    )
+
+    import hashlib
+
+    assinatura = hashlib.sha1(
+        assinatura_base.encode("utf-8")
+    ).hexdigest()
+
+    endpoint = (
+        f"https://api.cloudinary.com/v1_1/"
+        f"{cloud_name}/image/upload"
+    )
+
+    extensao = Path(nome_arquivo).suffix.lower()
+
+    tipos = {
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".webp": "image/webp",
+        ".gif": "image/gif",
+    }
+
+    tipo_mime = tipos.get(
+        extensao,
+        "application/octet-stream"
+    )
+
+    formulario = {
+        "file": (
+            f"data:{tipo_mime};base64,"
+            + base64.b64encode(conteudo).decode("ascii")
+        ),
+        "api_key": api_key,
+        "timestamp": timestamp,
+        "signature": assinatura,
+    }
+
+    corpo = urllib.parse.urlencode(formulario).encode("utf-8")
+
+    requisicao = urllib.request.Request(
+        endpoint,
+        data=corpo,
+        method="POST"
+    )
+
+    with urllib.request.urlopen(requisicao, timeout=60) as resposta:
+        resultado = json.loads(
+            resposta.read().decode("utf-8")
+        )
+
+    return resultado["secure_url"]
+
+
 class CatalogoHandler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
+
+        if self.path == "/api/upload-imagem":
+            content_type = self.headers.get("Content-Type", "")
+
+            if "multipart/form-data" not in content_type:
+                self.send_error(
+                    400,
+                    "Upload deve usar multipart/form-data"
+                )
+                return
+
+            tamanho = int(
+                self.headers.get("Content-Length", "0")
+            )
+
+            corpo = self.rfile.read(tamanho)
+
+            try:
+                mensagem = BytesParser(
+                    policy=default
+                ).parsebytes(
+                    (
+                        f"Content-Type: {content_type}\r\n"
+                        f"MIME-Version: 1.0\r\n\r\n"
+                    ).encode("utf-8") + corpo
+                )
+
+                arquivo = None
+
+                for parte in mensagem.iter_parts():
+                    if parte.get_filename():
+                        arquivo = parte
+                        break
+
+                if arquivo is None:
+                    self.send_error(
+                        400,
+                        "Nenhuma imagem enviada"
+                    )
+                    return
+
+                conteudo = arquivo.get_payload(
+                    decode=True
+                )
+
+                if not conteudo:
+                    self.send_error(
+                        400,
+                        "Imagem vazia"
+                    )
+                    return
+
+                url = enviar_imagem_cloudinary(
+                    arquivo.get_filename(),
+                    conteudo
+                )
+
+            except Exception as erro:
+                self.send_error(
+                    500,
+                    f"Erro no upload da imagem: {erro}"
+                )
+                return
+
+            resposta = json.dumps(
+                {
+                    "ok": True,
+                    "url": url
+                },
+                ensure_ascii=False
+            ).encode("utf-8")
+
+            self.send_response(200)
+            self.send_header(
+                "Content-Type",
+                "application/json; charset=utf-8"
+            )
+            self.send_header(
+                "Content-Length",
+                str(len(resposta))
+            )
+            self.end_headers()
+            self.wfile.write(resposta)
+            return
 
         if self.path != "/api/anuncios":
             self.send_error(404, "Rota não encontrada")

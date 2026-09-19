@@ -196,9 +196,9 @@
 
         <div class="campo">
             <label for="fotos">Fotos</label>
-            <input id="fotos" type="text" placeholder="URLs das fotos, separadas por vírgula">
+            <input id="fotos" type="file" accept="image/*">
             <div class="observacao">
-                Nesta primeira versão, informe as URLs das imagens.
+                Selecione uma imagem da galeria do celular.
             </div>
         </div>
 
@@ -399,27 +399,52 @@ async function excluirAnuncio(id) {
 
 async function salvarAnuncio() {
 
-    const dados = {
-        nome: document.getElementById("nome").value.trim(),
-        codigo: document.getElementById("codigo").value.trim(),
-        fotos: document.getElementById("fotos").value.trim(),
-        descricao: document.getElementById("descricao").value.trim(),
-        preco: document.getElementById("preco").value.trim(),
-        condicao: document.getElementById("condicao").value,
-        vendedor: document.getElementById("vendedor").value.trim(),
-        contato: document.getElementById("contato").value.trim(),
-        endereco: document.getElementById("endereco").value.trim(),
-        taxa: document.getElementById("taxa").value.trim(),
-        pagamento: document.getElementById("pagamento").value.trim(),
-        video: document.getElementById("video").value.trim()
-    };
+    const arquivoFoto = document.getElementById("fotos").files[0];
 
-    if (!dados.nome) {
-        alert("Informe o nome do produto.");
+    if (!arquivoFoto) {
+        alert("Selecione uma foto do produto.");
         return;
     }
 
     try {
+
+        const formulario = new FormData();
+        formulario.append("imagem", arquivoFoto);
+
+        const upload = await fetch("/api/upload-imagem", {
+            method: "POST",
+            body: formulario
+        });
+
+        const resultadoUpload = await upload.json();
+
+        if (!upload.ok || !resultadoUpload.ok) {
+            throw new Error(
+                resultadoUpload.message ||
+                resultadoUpload.error ||
+                "Não foi possível enviar a imagem."
+            );
+        }
+
+        const dados = {
+            nome: document.getElementById("nome").value.trim(),
+            codigo: document.getElementById("codigo").value.trim(),
+            fotos: resultadoUpload.url,
+            descricao: document.getElementById("descricao").value.trim(),
+            preco: document.getElementById("preco").value.trim(),
+            condicao: document.getElementById("condicao").value,
+            vendedor: document.getElementById("vendedor").value.trim(),
+            contato: document.getElementById("contato").value.trim(),
+            endereco: document.getElementById("endereco").value.trim(),
+            taxa: document.getElementById("taxa").value.trim(),
+            pagamento: document.getElementById("pagamento").value.trim(),
+            video: document.getElementById("video").value.trim()
+        };
+
+        if (!dados.nome) {
+            alert("Informe o nome do produto.");
+            return;
+        }
 
         const resposta = await fetch("/api/anuncios", {
             method: "POST",
@@ -452,10 +477,7 @@ async function salvarAnuncio() {
             erro.message
         );
     }
-}
-
-
-carregarAnuncios();
+}carregarAnuncios();
 
 </script>
 
