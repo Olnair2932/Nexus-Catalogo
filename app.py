@@ -3,10 +3,29 @@ from pathlib import Path
 import json
 import os
 import uuid
+import firebase_admin
+from firebase_admin import credentials, db
 
 BASE = Path(__file__).resolve().parent
 HOST = "0.0.0.0"
 PORT = int(os.environ.get("PORT", "8090"))
+
+
+FIREBASE_SERVICE_ACCOUNT_JSON = os.environ.get(
+    "FIREBASE_SERVICE_ACCOUNT_JSON"
+)
+
+if FIREBASE_SERVICE_ACCOUNT_JSON:
+    cred = credentials.Certificate(
+        json.loads(FIREBASE_SERVICE_ACCOUNT_JSON)
+    )
+
+    firebase_admin.initialize_app(
+        cred,
+        {
+            "databaseURL": "https://ia-termux-default-rtdb.firebaseio.com"
+        }
+    )
 
 
 class CatalogoHandler(SimpleHTTPRequestHandler):
@@ -102,17 +121,26 @@ class CatalogoHandler(SimpleHTTPRequestHandler):
                 "fotos": str(dados.get("fotos", "")).strip()
             }
 
-            anuncios.append(registro)
+            if FIREBASE_SERVICE_ACCOUNT_JSON:
+                referencia = db.reference(
+                    "nexus_catalogo/anuncios"
+                )
+                referencia.child(anuncio_id).set(registro)
+            else:
+                anuncios.append(registro)
 
-            arquivo_dados.parent.mkdir(parents=True, exist_ok=True)
-            arquivo_dados.write_text(
-                json.dumps(
-                    anuncios,
-                    ensure_ascii=False,
-                    indent=2
-                ),
-                encoding="utf-8"
-            )
+                arquivo_dados.parent.mkdir(
+                    parents=True,
+                    exist_ok=True
+                )
+                arquivo_dados.write_text(
+                    json.dumps(
+                        anuncios,
+                        ensure_ascii=False,
+                        indent=2
+                    ),
+                    encoding="utf-8"
+                )
 
         except Exception as erro:
             self.send_error(500, f"Erro ao criar anúncio: {erro}")
@@ -157,38 +185,62 @@ class CatalogoHandler(SimpleHTTPRequestHandler):
         arquivo_dados = BASE / "dados" / "anuncios.json"
 
         try:
-            anuncios = json.loads(
-                arquivo_dados.read_text(encoding="utf-8")
+            if FIREBASE_SERVICE_ACCOUNT_JSON:
+                referencia = db.reference(
+                    "nexus_catalogo/anuncios"
+                ).child(anuncio_id)
+
+                anuncio = referencia.get()
+
+                if not isinstance(anuncio, dict):
+                    self.send_error(
+                        404,
+                        "Anúncio não encontrado"
+                    )
+                    return
+
+                referencia.delete()
+
+            else:
+                anuncios = json.loads(
+                    arquivo_dados.read_text(encoding="utf-8")
+                )
+
+                if not isinstance(anuncios, list):
+                    anuncios = []
+
+                encontrados = [
+                    anuncio for anuncio in anuncios
+                    if str(anuncio.get("id", "")) == anuncio_id
+                ]
+
+                if not encontrados:
+                    self.send_error(
+                        404,
+                        "Anúncio não encontrado"
+                    )
+                    return
+
+                anuncios = [
+                    anuncio for anuncio in anuncios
+                    if str(anuncio.get("id", "")) != anuncio_id
+                ]
+
+                arquivo_dados.write_text(
+                    json.dumps(
+                        anuncios,
+                        ensure_ascii=False,
+                        indent=2
+                    ),
+                    encoding="utf-8"
+                )
+
+        except Exception as erro:
+            self.send_error(
+                500,
+                f"Erro ao excluir anúncio: {erro}"
             )
-
-            if not isinstance(anuncios, list):
-                anuncios = []
-
-        except Exception:
-            anuncios = []
-
-        encontrados = [
-            anuncio for anuncio in anuncios
-            if str(anuncio.get("id", "")) == anuncio_id
-        ]
-
-        if not encontrados:
-            self.send_error(404, "Anúncio não encontrado")
             return
-
-        anuncios = [
-            anuncio for anuncio in anuncios
-            if str(anuncio.get("id", "")) != anuncio_id
-        ]
-
-        arquivo_dados.write_text(
-            json.dumps(
-                anuncios,
-                ensure_ascii=False,
-                indent=2
-            ),
-            encoding="utf-8"
-        )
 
         pasta_anuncio = BASE / "anuncios" / anuncio_id
 
@@ -223,9 +275,19 @@ class CatalogoHandler(SimpleHTTPRequestHandler):
             arquivo = BASE / "dados" / "anuncios.json"
 
             try:
-                dados = json.loads(
-                    arquivo.read_text(encoding="utf-8")
-                )
+                if FIREBASE_SERVICE_ACCOUNT_JSON:
+                    dados_firebase = db.reference(
+                        "nexus_catalogo/anuncios"
+                    ).get()
+
+                    if isinstance(dados_firebase, dict):
+                        dados = list(dados_firebase.values())
+                    else:
+                        dados = []
+                else:
+                    dados = json.loads(
+                        arquivo.read_text(encoding="utf-8")
+                    )
             except Exception:
                 dados = []
 
