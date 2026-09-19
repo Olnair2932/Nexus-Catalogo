@@ -220,6 +220,15 @@
             margin-top: 6px;
         }
 
+        .voltar-topo {
+            display: block;
+            width: 100%;
+            max-width: 420px;
+            margin: 30px auto 10px;
+            background: #202b38;
+            color: white;
+        }
+
     </style>
 </head>
 
@@ -327,6 +336,12 @@
 
     <section id="catalogo">
         <div id="lista"></div>
+
+        <button
+            class="voltar-topo"
+            onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">
+            ⬆️ VOLTAR AO TOPO
+        </button>
     </section>
 
 </main>
