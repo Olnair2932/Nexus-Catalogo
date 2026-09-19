@@ -97,11 +97,10 @@ Quando o cliente demonstrar interesse, sugira uma mensagem adequada para entrar 
         try {
             await navigator.clipboard.writeText(prompt);
 
-            alert("Prompt copiado! Abra a Meta AI no WhatsApp e cole o conteúdo.");
             
             window.open("https://wa.me/ais/867051314767696?s=5", "_blank");
         } catch (erro) {
-            alert("Não foi possível copiar o prompt automaticamente.");
+            window.open("https://wa.me/ais/867051314767696?s=5", "_blank");
         }
     }
     window.addEventListener("popstate", function () {
