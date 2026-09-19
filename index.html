@@ -36,6 +36,7 @@
         .acoes {
             display: flex;
             justify-content: center;
+            gap: 10px;
             padding: 20px;
         }
 
@@ -51,6 +52,11 @@
         .novo {
             background: #19e68c;
             color: #06130d;
+        }
+
+        .voltar {
+            background: #202b38;
+            color: white;
         }
 
         main {
@@ -96,6 +102,66 @@
             background: #202b38;
             color: white;
         }
+
+        #formulario {
+            display: none;
+            max-width: 700px;
+            margin: 0 auto 40px;
+            background: #121922;
+            border: 1px solid #25303c;
+            border-radius: 16px;
+            padding: 22px;
+        }
+
+        #formulario h2 {
+            margin-top: 0;
+        }
+
+        .campo {
+            margin-bottom: 16px;
+        }
+
+        .campo label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: bold;
+        }
+
+        .campo input,
+        .campo textarea,
+        .campo select {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #303b48;
+            border-radius: 9px;
+            background: #0b0f14;
+            color: white;
+            font-size: 15px;
+        }
+
+        .campo textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+
+        .observacao {
+            color: #9ca8b5;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        .salvar {
+            width: 100%;
+            background: #19e68c;
+            color: #06130d;
+        }
+
+        .cancelar {
+            width: 100%;
+            margin-top: 10px;
+            background: #202b38;
+            color: white;
+        }
     </style>
 </head>
 
@@ -107,13 +173,97 @@
 </header>
 
 <div class="acoes">
-    <button class="novo" onclick="novoAnuncio()">
+    <button class="novo" onclick="mostrarFormulario()">
         ➕ NOVO ANÚNCIO
     </button>
 </div>
 
 <main>
-    <div id="lista"></div>
+
+    <section id="formulario">
+
+        <h2>➕ Novo anúncio</h2>
+
+        <div class="campo">
+            <label for="nome">Nome do produto</label>
+            <input id="nome" type="text" placeholder="Ex.: Smartphone Galaxy A54">
+        </div>
+
+        <div class="campo">
+            <label for="codigo">Código</label>
+            <input id="codigo" type="text" placeholder="Ex.: PROD-0001">
+        </div>
+
+        <div class="campo">
+            <label for="fotos">Fotos</label>
+            <input id="fotos" type="text" placeholder="URLs das fotos, separadas por vírgula">
+            <div class="observacao">
+                Nesta primeira versão, informe as URLs das imagens.
+            </div>
+        </div>
+
+        <div class="campo">
+            <label for="descricao">Descrição</label>
+            <textarea id="descricao" placeholder="Descreva o produto..."></textarea>
+        </div>
+
+        <div class="campo">
+            <label for="preco">Preço</label>
+            <input id="preco" type="text" placeholder="Ex.: R$ 1.499,00">
+        </div>
+
+        <div class="campo">
+            <label for="condicao">Condição</label>
+            <select id="condicao">
+                <option value="Novo">Novo</option>
+                <option value="Usado">Usado</option>
+            </select>
+        </div>
+
+        <div class="campo">
+            <label for="vendedor">Nome do vendedor</label>
+            <input id="vendedor" type="text" placeholder="Nome do vendedor">
+        </div>
+
+        <div class="campo">
+            <label for="contato">Contato</label>
+            <input id="contato" type="text" placeholder="WhatsApp ou telefone">
+        </div>
+
+        <div class="campo">
+            <label for="endereco">Endereço para retirada</label>
+            <input id="endereco" type="text" placeholder="Endereço de retirada">
+        </div>
+
+        <div class="campo">
+            <label for="taxa">Taxa de entrega</label>
+            <input id="taxa" type="text" placeholder="Ex.: R$ 10,00 ou Grátis">
+        </div>
+
+        <div class="campo">
+            <label for="pagamento">Forma de pagamento</label>
+            <input id="pagamento" type="text" placeholder="Ex.: Pix, dinheiro, cartão">
+        </div>
+
+        <div class="campo">
+            <label for="video">Vídeo Cloudinary</label>
+            <input id="video" type="url" placeholder="URL do vídeo no Cloudinary">
+        </div>
+
+        <button class="salvar" onclick="salvarAnuncio()">
+            💾 CONTINUAR
+        </button>
+
+        <button class="cancelar" onclick="fecharFormulario()">
+            CANCELAR
+        </button>
+
+    </section>
+
+    <section id="catalogo">
+        <div id="lista"></div>
+    </section>
+
 </main>
 
 <script>
@@ -128,18 +278,22 @@ async function carregarAnuncios() {
         const anuncios = await resposta.json();
 
         if (!anuncios.length) {
+
             lista.innerHTML = `
                 <div class="vazio">
                     <h2>Nenhum anúncio cadastrado</h2>
                     <p>Use "Novo anúncio" para criar o primeiro produto.</p>
                 </div>
             `;
+
             return;
         }
 
         lista.innerHTML = anuncios.map(anuncio => `
             <article class="card">
+
                 <h2>${anuncio.nome || "Produto"}</h2>
+
                 <div class="preco">
                     ${anuncio.preco || ""}
                 </div>
@@ -149,6 +303,7 @@ async function carregarAnuncios() {
                     onclick="abrirAnuncio('${anuncio.id}')">
                     👁️ ABRIR ANÚNCIO
                 </button>
+
             </article>
         `).join("");
 
@@ -164,13 +319,41 @@ async function carregarAnuncios() {
 }
 
 
+function mostrarFormulario() {
+
+    document.getElementById("formulario").style.display = "block";
+
+    document.getElementById("catalogo").style.display = "none";
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+}
+
+
+function fecharFormulario() {
+
+    document.getElementById("formulario").style.display = "none";
+
+    document.getElementById("catalogo").style.display = "block";
+}
+
+
 function abrirAnuncio(id) {
+
     window.location.href = "/anuncios/" + id + "/";
 }
 
 
-function novoAnuncio() {
-    alert("O criador de anúncios será desenvolvido no próximo passo.");
+function salvarAnuncio() {
+
+    alert(
+        "Os dados foram preenchidos.\n\n" +
+        "A próxima etapa será enviar essas informações " +
+        "para o servidor e gerar automaticamente uma cópia " +
+        "do anuncio_padrao.html."
+    );
 }
 
 
