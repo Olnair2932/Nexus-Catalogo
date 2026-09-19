@@ -346,14 +346,61 @@ function abrirAnuncio(id) {
 }
 
 
-function salvarAnuncio() {
+async function salvarAnuncio() {
 
-    alert(
-        "Os dados foram preenchidos.\n\n" +
-        "A próxima etapa será enviar essas informações " +
-        "para o servidor e gerar automaticamente uma cópia " +
-        "do anuncio_padrao.html."
-    );
+    const dados = {
+        nome: document.getElementById("nome").value.trim(),
+        codigo: document.getElementById("codigo").value.trim(),
+        fotos: document.getElementById("fotos").value.trim(),
+        descricao: document.getElementById("descricao").value.trim(),
+        preco: document.getElementById("preco").value.trim(),
+        condicao: document.getElementById("condicao").value,
+        vendedor: document.getElementById("vendedor").value.trim(),
+        contato: document.getElementById("contato").value.trim(),
+        endereco: document.getElementById("endereco").value.trim(),
+        taxa: document.getElementById("taxa").value.trim(),
+        pagamento: document.getElementById("pagamento").value.trim(),
+        video: document.getElementById("video").value.trim()
+    };
+
+    if (!dados.nome) {
+        alert("Informe o nome do produto.");
+        return;
+    }
+
+    try {
+
+        const resposta = await fetch("/api/anuncios", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(dados)
+        });
+
+        const resultado = await resposta.json();
+
+        if (!resposta.ok || !resultado.ok) {
+            throw new Error(
+                resultado.message ||
+                resultado.error ||
+                "Não foi possível criar o anúncio."
+            );
+        }
+
+        alert("✅ Anúncio criado com sucesso!");
+
+        window.location.href = resultado.url;
+
+    } catch (erro) {
+
+        console.error(erro);
+
+        alert(
+            "❌ Não foi possível criar o anúncio.\n\n" +
+            erro.message
+        );
+    }
 }
 
 
