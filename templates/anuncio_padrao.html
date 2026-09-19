@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smartphone Galaxy A54 128 GB - Venda</title>
+    <style>
+        :root { --primary: #25d366; --secondary: #007bff; --dark: #333; }
+        body { font-family: sans-serif; margin: 0; background: #f0f2f5; color: var(--dark); }
+        .container { max-width: 600px; margin: auto; padding: 15px; }
+        .card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        img { width: 100%; border-radius: 8px; margin-bottom: 10px; }
+        .grid-img { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+        button { width: 100%; padding: 15px; margin: 5px 0; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-share { background: var(--secondary); color: white; }
+        .btn-wa { background: var(--primary); color: white; }
+        .btn-ai { background: #6f42c1; color: white; }
+        video { width: 100%; border-radius: 8px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <h1>Smartphone Galaxy A54 128 GB</h1>
+        <p>Preço: <strong>R$ 1.499,00</strong></p>
+        <p>Condição: Usado | Cód: ANUNCIO-0001</p>
+    </div>
+    
+    <div class="card">
+        <img src="https://via.placeholder.com/600x400" alt="Produto Principal">
+        <div class="grid-img">
+            <img src="https://via.placeholder.com/100" alt="Foto">
+            <img src="https://via.placeholder.com/100" alt="Foto">
+            <img src="https://via.placeholder.com/100" alt="Foto">
+            <img src="https://via.placeholder.com/100" alt="Foto">
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Vídeo do Produto</h3>
+        <video controls>
+            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <div class="card">
+        <h3>Descrição</h3>
+        <p id="desc-text">Galaxy A54 em perfeito estado, 128GB, cor preta, sem marcas de uso.</p>
+    </div>
+
+    <div class="card">
+        <button class="btn-share" onclick="compartilhar()">📤 COMPARTILHAR ANÚNCIO</button>
+        <button class="btn-wa" onclick="abrirWA()">💚 WHATSAPP</button>
+        <button class="btn-ai" onclick="copiarParaIA()">🤖 META AI</button>
+    </div>
+</div>
+
+<script>
+    const produto = "Smartphone Galaxy A54 128 GB";
+    const preco = "R$ 1.499,00";
+    
+    function compartilhar() {
+        if (navigator.share) {
+            navigator.share({ title: produto, text: "Veja este produto: " + produto, url: window.location.href });
+        } else {
+            navigator.clipboard.writeText(window.location.href);
+            alert("Link copiado!");
+        }
+    }
+
+    function abrirWA() {
+        const msg = encodeURIComponent(`Olá, tenho interesse no ${produto} de ${preco}.`);
+        window.open(`https://wa.me/5500000000000?text=${msg}`);
+    }
+
+    async function copiarParaIA() {
+        const prompt = `PROMPT PADRÃO — ATENDENTE VIRTUAL DE VENDAS
+
+Atue como atendente virtual deste anúncio. Use as informações fornecidas sobre o produto para auxiliar o cliente durante o processo de compra.
+
+Produto: ${produto}
+Preço: ${preco}
+Descrição: ${document.getElementById("desc-text")?.innerText || ""}
+
+Apresente as principais vantagens do produto, explique suas características de forma clara, responda às dúvidas do cliente, informe preço, condições de entrega e retirada quando disponíveis e destaque os benefícios relevantes.
+
+Conduza a conversa de maneira natural, cordial e objetiva, ajudando o cliente a tomar uma decisão de compra.
+
+Quando o cliente demonstrar interesse, sugira uma mensagem adequada para entrar em contato com o vendedor e finalizar a compra.`;
+
+        try {
+            await navigator.clipboard.writeText(prompt);
+
+            alert("Prompt copiado! Abra a Meta AI no WhatsApp e cole o conteúdo.");
+            
+            window.open("https://wa.me/ais/867051314767696?s=5", "_blank");
+        } catch (erro) {
+            alert("Não foi possível copiar o prompt automaticamente.");
+        }
+    }
+</script>
+</body>
+</html>

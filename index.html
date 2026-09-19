@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS CATÁLOGO</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0b0f14;
+            color: #ffffff;
+        }
+
+        header {
+            padding: 24px 18px;
+            text-align: center;
+            border-bottom: 1px solid #202833;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 28px;
+        }
+
+        header p {
+            margin: 0;
+            color: #9ca8b5;
+        }
+
+        .acoes {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        button {
+            border: 0;
+            border-radius: 10px;
+            padding: 14px 20px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .novo {
+            background: #19e68c;
+            color: #06130d;
+        }
+
+        main {
+            width: min(1100px, 94%);
+            margin: auto;
+            padding: 10px 0 40px;
+        }
+
+        #lista {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+        }
+
+        .vazio {
+            text-align: center;
+            color: #9ca8b5;
+            padding: 50px 20px;
+            border: 1px dashed #303b48;
+            border-radius: 14px;
+        }
+
+        .card {
+            background: #121922;
+            border: 1px solid #25303c;
+            border-radius: 14px;
+            padding: 18px;
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+
+        .preco {
+            font-size: 22px;
+            font-weight: bold;
+            margin: 12px 0;
+        }
+
+        .abrir {
+            width: 100%;
+            background: #202b38;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>🛍️ NEXUS CATÁLOGO</h1>
+    <p>Catálogo online de anúncios</p>
+</header>
+
+<div class="acoes">
+    <button class="novo" onclick="novoAnuncio()">
+        ➕ NOVO ANÚNCIO
+    </button>
+</div>
+
+<main>
+    <div id="lista"></div>
+</main>
+
+<script>
+
+async function carregarAnuncios() {
+
+    const lista = document.getElementById("lista");
+
+    try {
+
+        const resposta = await fetch("/api/anuncios");
+        const anuncios = await resposta.json();
+
+        if (!anuncios.length) {
+            lista.innerHTML = `
+                <div class="vazio">
+                    <h2>Nenhum anúncio cadastrado</h2>
+                    <p>Use "Novo anúncio" para criar o primeiro produto.</p>
+                </div>
+            `;
+            return;
+        }
+
+        lista.innerHTML = anuncios.map(anuncio => `
+            <article class="card">
+                <h2>${anuncio.nome || "Produto"}</h2>
+                <div class="preco">
+                    ${anuncio.preco || ""}
+                </div>
+
+                <button
+                    class="abrir"
+                    onclick="abrirAnuncio('${anuncio.id}')">
+                    👁️ ABRIR ANÚNCIO
+                </button>
+            </article>
+        `).join("");
+
+    } catch (erro) {
+
+        lista.innerHTML = `
+            <div class="vazio">
+                <h2>Erro ao carregar catálogo</h2>
+                <p>${erro.message}</p>
+            </div>
+        `;
+    }
+}
+
+
+function abrirAnuncio(id) {
+    window.location.href = "/anuncios/" + id + "/";
+}
+
+
+function novoAnuncio() {
+    alert("O criador de anúncios será desenvolvido no próximo passo.");
+}
+
+
+carregarAnuncios();
+
+</script>
+
+</body>
+</html>
