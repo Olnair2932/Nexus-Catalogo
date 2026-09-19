@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smartphone Galaxy A54 128 GB - Venda</title>
+    <title>{{NOME_ANUNCIO}} - Venda</title>
     <style>
         :root { --primary: #25d366; --secondary: #007bff; --dark: #333; }
         body { font-family: sans-serif; margin: 0; background: #f0f2f5; color: var(--dark); }
@@ -21,9 +21,9 @@
 <body>
 <div class="container">
     <div class="card">
-        <h1>Smartphone Galaxy A54 128 GB</h1>
-        <p>Preço: <strong>R$ 1.499,00</strong></p>
-        <p>Condição: Usado | Cód: ANUNCIO-0001</p>
+        <h1>{{NOME_ANUNCIO}}</h1>
+        <p>Preço: <strong>{{PRECO_ANUNCIO}}</strong></p>
+        <p>Condição: {{CONDICAO_ANUNCIO}} | Cód: {{CODIGO_ANUNCIO}}</p>
     </div>
     
     <div class="card">
@@ -45,7 +45,7 @@
 
     <div class="card">
         <h3>Descrição</h3>
-        <p id="desc-text">Galaxy A54 em perfeito estado, 128GB, cor preta, sem marcas de uso.</p>
+        <p id="desc-text">{{DESCRICAO_ANUNCIO}}</p>
     </div>
 
     <div class="card">
@@ -56,8 +56,8 @@
 </div>
 
 <script>
-    const produto = "Smartphone Galaxy A54 128 GB";
-    const preco = "R$ 1.499,00";
+    const produto = "{{NOME_ANUNCIO}}";
+    const preco = "{{PRECO_ANUNCIO}}";
     
     function compartilhar() {
         if (navigator.share) {
@@ -70,7 +70,7 @@
 
     function abrirWA() {
         const msg = encodeURIComponent(`Olá, tenho interesse no ${produto} de ${preco}.`);
-        window.open(`https://wa.me/5500000000000?text=${msg}`);
+        window.open(`https://wa.me/{{CONTATO_ANUNCIO}}?text=${msg}`);
     }
 
     async function copiarParaIA() {

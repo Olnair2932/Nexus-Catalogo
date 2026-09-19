@@ -413,27 +413,40 @@ class CatalogoHandler(SimpleHTTPRequestHandler):
                         1
                     )
 
+            condicao = str(dados.get("condicao", "")).strip()
+            vendedor = str(dados.get("vendedor", "")).strip()
+            endereco = str(dados.get("endereco", "")).strip()
+            taxa = str(dados.get("taxa", "")).strip()
+            pagamento = str(dados.get("pagamento", "")).strip()
+
             html = html.replace(
-                "Smartphone Galaxy A54 128 GB",
+                "{{NOME_ANUNCIO}}",
                 produto
             )
             html = html.replace(
-                "R$ 1.499,00",
+                "{{PRECO_ANUNCIO}}",
                 preco
             )
             html = html.replace(
-                "ANUNCIO-0001",
+                "{{CODIGO_ANUNCIO}}",
                 codigo
             )
             html = html.replace(
-                "Galaxy A54 em perfeito estado, 128GB, cor preta, sem marcas de uso.",
+                "{{CONDICAO_ANUNCIO}}",
+                condicao
+            )
+            html = html.replace(
+                "{{DESCRICAO_ANUNCIO}}",
                 descricao
             )
             html = html.replace(
-                "5500000000000",
-                contato
+                "{{CONTATO_ANUNCIO}}",
+                "".join(
+                    caractere
+                    for caractere in contato
+                    if caractere.isdigit()
+                )
             )
-
             html = html.replace(
                 "{{VIDEO_ANUNCIO}}",
                 video
@@ -623,6 +636,167 @@ class CatalogoHandler(SimpleHTTPRequestHandler):
 
 
     def do_GET(self):
+
+        if self.path.startswith("/anuncios/"):
+
+            caminho = urllib.parse.urlparse(
+                self.path
+            ).path
+
+            partes = caminho.strip("/").split("/")
+
+            anuncio_id = (
+                partes[1]
+                if len(partes) == 2
+                else ""
+            )
+
+            if anuncio_id:
+
+                try:
+                    if FIREBASE_SERVICE_ACCOUNT_JSON:
+                        anuncio = db.reference(
+                            "nexus_catalogo/anuncios"
+                        ).child(anuncio_id).get()
+                    else:
+                        arquivo_dados = BASE / "dados" / "anuncios.json"
+                        anuncios = json.loads(
+                            arquivo_dados.read_text(
+                                encoding="utf-8"
+                            )
+                        )
+
+                        anuncio = next(
+                            (
+                                item for item in anuncios
+                                if str(item.get("id", "")) == anuncio_id
+                            ),
+                            None
+                        )
+
+                    if not isinstance(anuncio, dict):
+                        self.send_error(
+                            404,
+                            "Anúncio não encontrado"
+                        )
+                        return
+
+                    template = BASE / "templates" / "anuncio_padrao.html"
+                    html = template.read_text(
+                        encoding="utf-8"
+                    )
+
+                    produto = str(
+                        anuncio.get("nome", "")
+                    ).strip()
+
+                    preco = str(
+                        anuncio.get("preco", "")
+                    ).strip()
+
+                    codigo = str(
+                        anuncio.get("codigo", "")
+                    ).strip()
+
+                    condicao = str(
+                        anuncio.get("condicao", "")
+                    ).strip()
+
+                    descricao = str(
+                        anuncio.get("descricao", "")
+                    ).strip()
+
+                    contato = str(
+                        anuncio.get("contato", "")
+                    ).strip()
+
+                    video = str(
+                        anuncio.get("video", "")
+                    ).strip()
+
+                    fotos = str(
+                        anuncio.get("fotos", "")
+                    ).strip()
+
+                    lista_fotos = [
+                        foto.strip()
+                        for foto in fotos.split(",")
+                        if foto.strip()
+                    ]
+
+                    if lista_fotos:
+                        html = html.replace(
+                            "https://via.placeholder.com/600x400",
+                            lista_fotos[0],
+                            1
+                        )
+
+                        for foto in lista_fotos[:4]:
+                            html = html.replace(
+                                "https://via.placeholder.com/100",
+                                foto,
+                                1
+                            )
+
+                    html = html.replace(
+                        "{{NOME_ANUNCIO}}",
+                        produto
+                    )
+                    html = html.replace(
+                        "{{PRECO_ANUNCIO}}",
+                        preco
+                    )
+                    html = html.replace(
+                        "{{CODIGO_ANUNCIO}}",
+                        codigo
+                    )
+                    html = html.replace(
+                        "{{CONDICAO_ANUNCIO}}",
+                        condicao
+                    )
+                    html = html.replace(
+                        "{{DESCRICAO_ANUNCIO}}",
+                        descricao
+                    )
+                    html = html.replace(
+                        "{{CONTATO_ANUNCIO}}",
+                        "".join(
+                            caractere
+                            for caractere in contato
+                            if caractere.isdigit()
+                        )
+                    )
+                    html = html.replace(
+                        "{{VIDEO_ANUNCIO}}",
+                        video
+                    )
+
+                    html = html.replace(
+                        '<img src="https://via.placeholder.com/100" alt="Foto">',
+                        ""
+                    )
+
+                    corpo = html.encode("utf-8")
+
+                    self.send_response(200)
+                    self.send_header(
+                        "Content-Type",
+                        "text/html; charset=utf-8"
+                    )
+                    self.send_header(
+                        "Content-Length",
+                        str(len(corpo))
+                    )
+                    self.end_headers()
+                    self.wfile.write(corpo)
+                    return
+
+                except Exception as erro:
+                    self.send_error(
+                        500,
+                        f"Erro ao abrir anúncio: {erro}"
+                    )
+                    return
 
         if self.path == "/api/anuncios":
             arquivo = BASE / "dados" / "anuncios.json"
