@@ -106,6 +106,79 @@ def enviar_imagem_cloudinary(nome_arquivo, conteudo):
     return resultado["secure_url"]
 
 
+def enviar_video_cloudinary(nome_arquivo, conteudo):
+    cloudinary_url = os.environ.get("CLOUDINARY_URL")
+
+    if not cloudinary_url:
+        raise RuntimeError("CLOUDINARY_URL não configurada")
+
+    dados_url = cloudinary_url.replace(
+        "cloudinary://",
+        "",
+        1
+    )
+
+    credenciais, cloud_name = dados_url.split("@", 1)
+    api_key, api_secret = credenciais.split(":", 1)
+
+    timestamp = str(int(__import__("time").time()))
+
+    assinatura_base = (
+        f"timestamp={timestamp}{api_secret}"
+    )
+
+    import hashlib
+
+    assinatura = hashlib.sha1(
+        assinatura_base.encode("utf-8")
+    ).hexdigest()
+
+    endpoint = (
+        f"https://api.cloudinary.com/v1_1/"
+        f"{cloud_name}/video/upload"
+    )
+
+    extensao = Path(nome_arquivo).suffix.lower()
+
+    tipos = {
+        ".mp4": "video/mp4",
+        ".webm": "video/webm",
+        ".mov": "video/quicktime",
+        ".m4v": "video/x-m4v",
+        ".avi": "video/x-msvideo",
+    }
+
+    tipo_mime = tipos.get(
+        extensao,
+        "application/octet-stream"
+    )
+
+    formulario = {
+        "file": (
+            f"data:{tipo_mime};base64,"
+            + base64.b64encode(conteudo).decode("ascii")
+        ),
+        "api_key": api_key,
+        "timestamp": timestamp,
+        "signature": assinatura,
+    }
+
+    corpo = urllib.parse.urlencode(formulario).encode("utf-8")
+
+    requisicao = urllib.request.Request(
+        endpoint,
+        data=corpo,
+        method="POST"
+    )
+
+    with urllib.request.urlopen(requisicao, timeout=120) as resposta:
+        resultado = json.loads(
+            resposta.read().decode("utf-8")
+        )
+
+    return resultado["secure_url"]
+
+
 class CatalogoHandler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
@@ -194,6 +267,90 @@ class CatalogoHandler(SimpleHTTPRequestHandler):
             self.wfile.write(resposta)
             return
 
+        if self.path == "/api/upload-video":
+            content_type = self.headers.get("Content-Type", "")
+
+            if "multipart/form-data" not in content_type:
+                self.send_error(
+                    400,
+                    "Upload deve usar multipart/form-data"
+                )
+                return
+
+            tamanho = int(
+                self.headers.get("Content-Length", "0")
+            )
+
+            corpo = self.rfile.read(tamanho)
+
+            try:
+                mensagem = BytesParser(
+                    policy=default
+                ).parsebytes(
+                    (
+                        f"Content-Type: {content_type}\r\n"
+                        f"MIME-Version: 1.0\r\n\r\n"
+                    ).encode("utf-8") + corpo
+                )
+
+                arquivo = None
+
+                for parte in mensagem.iter_parts():
+                    if parte.get_filename():
+                        arquivo = parte
+                        break
+
+                if arquivo is None:
+                    self.send_error(
+                        400,
+                        "Nenhum vídeo enviado"
+                    )
+                    return
+
+                conteudo = arquivo.get_payload(
+                    decode=True
+                )
+
+                if not conteudo:
+                    self.send_error(
+                        400,
+                        "Vídeo vazio"
+                    )
+                    return
+
+                url = enviar_video_cloudinary(
+                    arquivo.get_filename(),
+                    conteudo
+                )
+
+            except Exception as erro:
+                self.send_error(
+                    500,
+                    f"Erro no upload do vídeo: {erro}"
+                )
+                return
+
+            resposta = json.dumps(
+                {
+                    "ok": True,
+                    "url": url
+                },
+                ensure_ascii=False
+            ).encode("utf-8")
+
+            self.send_response(200)
+            self.send_header(
+                "Content-Type",
+                "application/json; charset=utf-8"
+            )
+            self.send_header(
+                "Content-Length",
+                str(len(resposta))
+            )
+            self.end_headers()
+            self.wfile.write(resposta)
+            return
+
         if self.path != "/api/anuncios":
             self.send_error(404, "Rota não encontrada")
             return
@@ -232,6 +389,7 @@ class CatalogoHandler(SimpleHTTPRequestHandler):
             descricao = str(dados.get("descricao", "")).strip()
             contato = str(dados.get("contato", "")).strip()
             fotos = str(dados.get("fotos", "")).strip()
+            video = str(dados.get("video", "")).strip()
 
             lista_fotos = [
                 foto.strip()
@@ -274,6 +432,11 @@ class CatalogoHandler(SimpleHTTPRequestHandler):
             html = html.replace(
                 "5500000000000",
                 contato
+            )
+
+            html = html.replace(
+                "{{VIDEO_ANUNCIO}}",
+                video
             )
 
             html = html.replace(

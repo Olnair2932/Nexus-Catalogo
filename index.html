@@ -248,6 +248,13 @@
         <div class="campo">
             <label for="video">Vídeo Cloudinary</label>
             <input id="video" type="url" placeholder="URL do vídeo no Cloudinary">
+
+            <label for="videoArquivo">Ou envie um vídeo do celular</label>
+            <input id="videoArquivo" type="file" accept="video/*">
+
+            <div class="observacao">
+                Você pode colar uma URL do Cloudinary ou enviar um vídeo da galeria.
+            </div>
         </div>
 
         <button class="salvar" onclick="salvarAnuncio()">
@@ -426,6 +433,33 @@ async function salvarAnuncio() {
             );
         }
 
+        let urlVideo = document.getElementById("video").value.trim();
+
+        const arquivoVideo = document.getElementById("videoArquivo").files[0];
+
+        if (arquivoVideo) {
+
+            const formularioVideo = new FormData();
+            formularioVideo.append("video", arquivoVideo);
+
+            const uploadVideo = await fetch("/api/upload-video", {
+                method: "POST",
+                body: formularioVideo
+            });
+
+            const resultadoVideo = await uploadVideo.json();
+
+            if (!uploadVideo.ok || !resultadoVideo.ok) {
+                throw new Error(
+                    resultadoVideo.message ||
+                    resultadoVideo.error ||
+                    "Não foi possível enviar o vídeo."
+                );
+            }
+
+            urlVideo = resultadoVideo.url;
+        }
+
         const dados = {
             nome: document.getElementById("nome").value.trim(),
             codigo: document.getElementById("codigo").value.trim(),
@@ -438,7 +472,7 @@ async function salvarAnuncio() {
             endereco: document.getElementById("endereco").value.trim(),
             taxa: document.getElementById("taxa").value.trim(),
             pagamento: document.getElementById("pagamento").value.trim(),
-            video: document.getElementById("video").value.trim()
+            video: urlVideo
         };
 
         if (!dados.nome) {
