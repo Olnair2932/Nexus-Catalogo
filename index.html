@@ -229,6 +229,355 @@
             color: white;
         }
 
+
+        /* ===== VISUAL PREMIUM — SOMENTE CSS ===== */
+
+        :root {
+            --fundo: #080c12;
+            --fundo-secundario: #0d131b;
+            --card: rgba(18, 25, 34, 0.94);
+            --card-hover: #151e29;
+            --borda: #263342;
+            --texto: #f4f7fa;
+            --texto-suave: #98a6b5;
+            --verde: #19e68c;
+            --verde-hover: #24f09a;
+            --sombra: 0 18px 45px rgba(0, 0, 0, 0.28);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background:
+                radial-gradient(circle at top center, rgba(25, 230, 140, 0.07), transparent 32%),
+                linear-gradient(180deg, var(--fundo) 0%, #0b1017 100%);
+            color: var(--texto);
+            min-height: 100vh;
+        }
+
+        header {
+            padding: 38px 18px 28px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+            background: linear-gradient(
+                180deg,
+                rgba(17, 24, 33, 0.92),
+                rgba(8, 12, 18, 0.72)
+            );
+        }
+
+        header h1 {
+            font-size: clamp(25px, 6vw, 34px);
+            letter-spacing: 0.5px;
+            text-shadow: 0 4px 20px rgba(25, 230, 140, 0.12);
+        }
+
+        header p {
+            color: var(--texto-suave);
+            font-size: 14px;
+        }
+
+        .acoes {
+            padding: 24px 18px 20px;
+        }
+
+        button {
+            transition:
+                transform 0.18s ease,
+                box-shadow 0.18s ease,
+                background 0.18s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .novo,
+        .salvar {
+            background: linear-gradient(135deg, #19e68c, #12c979);
+            box-shadow: 0 10px 25px rgba(25, 230, 140, 0.16);
+        }
+
+        .novo:hover,
+        .salvar:hover {
+            background: linear-gradient(135deg, #24f09a, #19e68c);
+            box-shadow: 0 14px 30px rgba(25, 230, 140, 0.23);
+        }
+
+        main {
+            padding-top: 8px;
+        }
+
+        #lista {
+            gap: 22px;
+        }
+
+        .card,
+        #formulario {
+            background: linear-gradient(
+                145deg,
+                rgba(20, 29, 39, 0.98),
+                rgba(13, 19, 27, 0.98)
+            );
+            border: 1px solid var(--borda);
+            box-shadow: var(--sombra);
+        }
+
+        .vitrine-card {
+            border-radius: 18px;
+            transition:
+                transform 0.2s ease,
+                border-color 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+        .vitrine-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(25, 230, 140, 0.38);
+            box-shadow:
+                0 22px 50px rgba(0, 0, 0, 0.34),
+                0 0 0 1px rgba(25, 230, 140, 0.05);
+        }
+
+        .vitrine-imagem {
+            background:
+                radial-gradient(circle, rgba(25, 230, 140, 0.08), transparent 55%),
+                #090e14;
+        }
+
+        .vitrine-imagem img {
+            transition: transform 0.35s ease;
+        }
+
+        .vitrine-card:hover .vitrine-imagem img {
+            transform: scale(1.025);
+        }
+
+        .vitrine-conteudo {
+            padding: 18px;
+        }
+
+        .vitrine-codigo {
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            color: #788898;
+        }
+
+        .vitrine-card h2 {
+            font-size: 21px;
+            line-height: 1.25;
+        }
+
+        .vitrine-card .preco {
+            font-size: 25px;
+            color: var(--verde);
+            letter-spacing: -0.3px;
+        }
+
+        .vitrine-condicao {
+            background: rgba(32, 43, 56, 0.9);
+            border: 1px solid #303e4d;
+        }
+
+        .vitrine-card .abrir,
+        .voltar,
+        .cancelar,
+        .voltar-topo {
+            background: linear-gradient(135deg, #1b2633, #151e29);
+            border: 1px solid #304050;
+        }
+
+        .vitrine-card .abrir:hover,
+        .voltar:hover,
+        .cancelar:hover,
+        .voltar-topo:hover {
+            background: linear-gradient(135deg, #263544, #1c2835);
+            border-color: #405366;
+        }
+
+        #formulario {
+            border-radius: 20px;
+            padding: 24px;
+        }
+
+        #formulario h2 {
+            font-size: 24px;
+            margin-bottom: 24px;
+        }
+
+        .campo label {
+            color: #dce4eb;
+        }
+
+        .campo input,
+        .campo textarea,
+        .campo select {
+            background: #090e14;
+            border: 1px solid #2b3948;
+            transition:
+                border-color 0.18s ease,
+                box-shadow 0.18s ease,
+                background 0.18s ease;
+        }
+
+        .campo input:focus,
+        .campo textarea:focus,
+        .campo select:focus {
+            outline: none;
+            border-color: rgba(25, 230, 140, 0.65);
+            box-shadow: 0 0 0 3px rgba(25, 230, 140, 0.09);
+            background: #0b1118;
+        }
+
+        .observacao {
+            color: #7f8d9c;
+        }
+
+        .vazio {
+            background: rgba(13, 19, 27, 0.55);
+            border-color: #344353;
+        }
+
+        .voltar-topo {
+            margin-top: 34px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+        }
+
+        .sem-imagem {
+            opacity: 0.65;
+        }
+
+        @media (max-width: 600px) {
+            header {
+                padding-top: 30px;
+            }
+
+            .acoes {
+                padding: 18px 14px;
+            }
+
+            .acoes button {
+                width: 100%;
+            }
+
+            main {
+                width: min(100% - 24px, 1100px);
+            }
+
+            #lista {
+                grid-template-columns: 1fr;
+                gap: 18px;
+            }
+
+            #formulario {
+                padding: 20px 16px;
+                border-radius: 17px;
+            }
+
+            .vitrine-card h2 {
+                font-size: 20px;
+            }
+        }
+
+        /* Modo claro automático, sem JavaScript */
+        @media (prefers-color-scheme: light) {
+            :root {
+                --fundo: #f3f6f8;
+                --fundo-secundario: #ffffff;
+                --card: #ffffff;
+                --card-hover: #ffffff;
+                --borda: #dce3e8;
+                --texto: #17212b;
+                --texto-suave: #657382;
+                --sombra: 0 14px 35px rgba(30, 45, 60, 0.10);
+            }
+
+            body {
+                background:
+                    radial-gradient(circle at top center, rgba(25, 230, 140, 0.10), transparent 35%),
+                    linear-gradient(180deg, #f8fafb 0%, #eef2f5 100%);
+                color: var(--texto);
+            }
+
+            header {
+                background: rgba(255, 255, 255, 0.88);
+                border-bottom-color: #dce3e8;
+            }
+
+            header p {
+                color: var(--texto-suave);
+            }
+
+            .card,
+            #formulario {
+                background: rgba(255, 255, 255, 0.96);
+                border-color: #dce3e8;
+                box-shadow: var(--sombra);
+            }
+
+            .vitrine-card:hover {
+                border-color: rgba(25, 180, 110, 0.42);
+                box-shadow: 0 20px 42px rgba(30, 45, 60, 0.14);
+            }
+
+            .vitrine-imagem {
+                background:
+                    radial-gradient(circle, rgba(25, 180, 110, 0.08), transparent 55%),
+                    #edf2f5;
+            }
+
+            .vitrine-codigo {
+                color: #748291;
+            }
+
+            .vitrine-condicao {
+                background: #eef2f5;
+                border-color: #d8e0e6;
+                color: #52616f;
+            }
+
+            .vitrine-card .abrir,
+            .voltar,
+            .cancelar,
+            .voltar-topo {
+                background: linear-gradient(135deg, #ffffff, #edf2f5);
+                border-color: #d2dce3;
+                color: #24313d;
+            }
+
+            .vitrine-card .abrir:hover,
+            .voltar:hover,
+            .cancelar:hover,
+            .voltar-topo:hover {
+                background: #e7edf1;
+                border-color: #c3d0d9;
+            }
+
+            .campo input,
+            .campo textarea,
+            .campo select {
+                background: #f8fafb;
+                border-color: #d2dce3;
+                color: #17212b;
+            }
+
+            .campo input:focus,
+            .campo textarea:focus,
+            .campo select:focus {
+                background: #ffffff;
+            }
+
+            .campo label {
+                color: #33424f;
+            }
+
+            .vazio {
+                background: rgba(255, 255, 255, 0.65);
+                border-color: #ccd7df;
+            }
+        }
+
     </style>
 </head>
 
