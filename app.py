@@ -276,6 +276,11 @@ class CatalogoHandler(SimpleHTTPRequestHandler):
                 contato
             )
 
+            html = html.replace(
+                '<img src="https://via.placeholder.com/100" alt="Foto">',
+                ""
+            )
+
             pasta_anuncio.mkdir(parents=True, exist_ok=False)
             pagina.write_text(html, encoding="utf-8")
 
