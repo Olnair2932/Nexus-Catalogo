@@ -104,6 +104,12 @@ Quando o cliente demonstrar interesse, sugira uma mensagem adequada para entrar 
             alert("Não foi possível copiar o prompt automaticamente.");
         }
     }
+    window.addEventListener("popstate", function () {
+        window.location.href = "/";
+    });
+
+    history.pushState(null, "", window.location.href);
+
 </script>
 </body>
 </html>
