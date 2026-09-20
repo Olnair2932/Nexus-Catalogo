@@ -825,6 +825,8 @@ async function entrarComGoogle() {
 
         await linkWithPopup(usuario, provider);
 
+        atualizarIndicadorUsuario(auth.currentUser);
+
     } catch (erro) {
         console.error("Erro ao vincular Google:", erro);
 
