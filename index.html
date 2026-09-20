@@ -607,6 +607,10 @@
     <button class="google-login" id="botaoGoogle" onclick="entrarComGoogle()">
         🔵 ENTRAR COM GOOGLE
     </button>
+
+    <button class="google-login" id="botaoSair" onclick="sairDoGoogle()" style="display:none;">
+        🚪 SAIR
+    </button>
 </div>
 
 <main>
@@ -715,6 +719,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebas
 import {
     getAuth,
     signInAnonymously,
+    signOut,
     onAuthStateChanged,
     GoogleAuthProvider,
     linkWithPopup
@@ -758,17 +763,22 @@ let autenticacaoPronta = (async () => {
 
 function atualizarIndicadorUsuario(usuario) {
     const botao = document.getElementById("botaoGoogle");
+    const botaoSair = document.getElementById("botaoSair");
 
-    if (!botao || !usuario) {
+    if (!botao || !botaoSair || !usuario) {
         return;
     }
 
     if (usuario.isAnonymous) {
+        botao.style.display = "";
         botao.innerHTML = "🔵 ENTRAR COM GOOGLE";
+        botaoSair.style.display = "none";
         return;
     }
 
     const email = usuario.email || "Conta Google";
+
+    botao.style.display = "";
 
     if (usuario.photoURL) {
         botao.innerHTML = `
@@ -788,6 +798,8 @@ function atualizarIndicadorUsuario(usuario) {
     } else {
         botao.innerHTML = `CONECTADO: ${email}`;
     }
+
+    botaoSair.style.display = "";
 }
 
 async function verificarRetornoGoogle() {
@@ -1115,6 +1127,27 @@ window.fecharFormulario = fecharFormulario;
 window.abrirAnuncio = abrirAnuncio;
 window.excluirAnuncio = excluirAnuncio;
 window.salvarAnuncio = salvarAnuncio;
+async function sairDoGoogle() {
+    try {
+        await signOut(auth);
+
+        await signInAnonymously(auth);
+        await aguardarEstadoAutenticacao();
+
+        atualizarIndicadorUsuario(auth.currentUser);
+
+    } catch (erro) {
+        console.error("Erro ao sair da conta Google:", erro);
+
+        alert(
+            "Não foi possível sair da conta Google.\n\n" +
+            erro.message
+        );
+    }
+}
+
+window.sairDoGoogle = sairDoGoogle;
+
 window.entrarComGoogle = entrarComGoogle;
 
 autenticacaoPronta
