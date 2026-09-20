@@ -717,8 +717,7 @@ import {
     signInAnonymously,
     onAuthStateChanged,
     GoogleAuthProvider,
-    linkWithRedirect,
-    getRedirectResult
+    linkWithPopup
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -792,26 +791,8 @@ function atualizarIndicadorUsuario(usuario) {
 }
 
 async function verificarRetornoGoogle() {
-    try {
-        const resultado = await getRedirectResult(auth);
-
-        if (resultado && resultado.user) {
-            console.log(
-                "Conta Google vinculada com sucesso:",
-                resultado.user.uid
-            );
-            atualizarIndicadorUsuario(resultado.user);
-        } else if (auth.currentUser) {
-            atualizarIndicadorUsuario(auth.currentUser);
-        }
-    } catch (erro) {
-        console.error("Erro no retorno do Google:", erro);
-
-        if (erro.code === "auth/credential-already-in-use") {
-            alert(
-                "Esta conta Google já está vinculada a outro usuário."
-            );
-        }
+    if (auth.currentUser) {
+        atualizarIndicadorUsuario(auth.currentUser);
     }
 }
 
@@ -830,7 +811,7 @@ async function entrarComGoogle() {
 
         const provider = new GoogleAuthProvider();
 
-        await linkWithRedirect(usuario, provider);
+        await linkWithPopup(usuario, provider);
 
     } catch (erro) {
         console.error("Erro ao vincular Google:", erro);
