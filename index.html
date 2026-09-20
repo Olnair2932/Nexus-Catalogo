@@ -715,6 +715,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebas
 import {
     getAuth,
     signInAnonymously,
+    onAuthStateChanged,
     GoogleAuthProvider,
     linkWithRedirect,
     getRedirectResult
@@ -733,8 +734,28 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
+function aguardarEstadoAutenticacao() {
+    return new Promise((resolve) => {
+        const cancelar = onAuthStateChanged(auth, (usuario) => {
+            cancelar();
+            resolve(usuario);
+        });
+    });
+}
 
-let autenticacaoPronta = signInAnonymously(auth);
+
+let autenticacaoPronta = (async () => {
+    await aguardarEstadoAutenticacao();
+
+    await verificarRetornoGoogle();
+
+    if (!auth.currentUser) {
+        await signInAnonymously(auth);
+        await aguardarEstadoAutenticacao();
+    }
+
+    atualizarIndicadorUsuario(auth.currentUser);
+})();
 
 function atualizarIndicadorUsuario(usuario) {
     const botao = document.getElementById("botaoGoogle");
@@ -1116,12 +1137,11 @@ window.salvarAnuncio = salvarAnuncio;
 window.entrarComGoogle = entrarComGoogle;
 
 autenticacaoPronta
-    .then(() => verificarRetornoGoogle())
     .then(() => carregarAnuncios())
     .catch((erro) => {
-        console.error("Erro na autenticação anônima:", erro);
+        console.error("Erro na autenticação:", erro);
         alert(
-            "Não foi possível iniciar a autenticação anônima.\n\n" +
+            "Não foi possível iniciar a autenticação.\n\n" +
             erro.message
         );
     });
