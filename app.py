@@ -9,7 +9,7 @@ import urllib.request
 from email.parser import BytesParser
 from email.policy import default
 import firebase_admin
-from firebase_admin import credentials, db
+from firebase_admin import credentials, db, auth
 
 BASE = Path(__file__).resolve().parent
 HOST = "0.0.0.0"
@@ -180,6 +180,28 @@ def enviar_video_cloudinary(nome_arquivo, conteudo):
 
 
 class CatalogoHandler(SimpleHTTPRequestHandler):
+
+    def autenticar_usuario(self):
+        if not FIREBASE_SERVICE_ACCOUNT_JSON:
+            return None
+
+        cabecalho = self.headers.get("Authorization", "")
+        if not cabecalho.startswith("Bearer "):
+            self.send_error(401, "Autenticação necessária")
+            return None
+
+        token = cabecalho[7:].strip()
+
+        if not token:
+            self.send_error(401, "Token de autenticação ausente")
+            return None
+
+        try:
+            token_verificado = auth.verify_id_token(token)
+            return token_verificado.get("uid")
+        except Exception:
+            self.send_error(401, "Token de autenticação inválido")
+            return None
 
     def do_POST(self):
 
@@ -355,6 +377,10 @@ class CatalogoHandler(SimpleHTTPRequestHandler):
             self.send_error(404, "Rota não encontrada")
             return
 
+        uid_usuario = self.autenticar_usuario()
+        if FIREBASE_SERVICE_ACCOUNT_JSON and not uid_usuario:
+            return
+
         tamanho = int(self.headers.get("Content-Length", "0"))
         corpo = self.rfile.read(tamanho)
 
@@ -484,6 +510,7 @@ class CatalogoHandler(SimpleHTTPRequestHandler):
 
             registro = {
                 "id": anuncio_id,
+                "uid": uid_usuario,
                 "nome": produto,
                 "codigo": codigo,
                 "preco": preco,
@@ -559,6 +586,10 @@ class CatalogoHandler(SimpleHTTPRequestHandler):
             self.send_error(400, "ID do anúncio não informado")
             return
 
+        uid_usuario = self.autenticar_usuario()
+        if FIREBASE_SERVICE_ACCOUNT_JSON and not uid_usuario:
+            return
+
         arquivo_dados = BASE / "dados" / "anuncios.json"
 
         try:
@@ -573,6 +604,13 @@ class CatalogoHandler(SimpleHTTPRequestHandler):
                     self.send_error(
                         404,
                         "Anúncio não encontrado"
+                    )
+                    return
+
+                if anuncio.get("uid") != uid_usuario:
+                    self.send_error(
+                        403,
+                        "Você não tem permissão para excluir este anúncio"
                     )
                     return
 
@@ -595,6 +633,15 @@ class CatalogoHandler(SimpleHTTPRequestHandler):
                     self.send_error(
                         404,
                         "Anúncio não encontrado"
+                    )
+                    return
+
+                anuncio_local = encontrados[0]
+
+                if anuncio_local.get("uid") != uid_usuario:
+                    self.send_error(
+                        403,
+                        "Você não tem permissão para excluir este anúncio"
                     )
                     return
 

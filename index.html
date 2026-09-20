@@ -695,7 +695,28 @@
 
 </main>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import {
+    getAuth,
+    signInAnonymously
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAS2NIZzWujvEFCvznq7RRrpai3lfAr1YU",
+    authDomain: "ia-termux.firebaseapp.com",
+    databaseURL: "https://ia-termux-default-rtdb.firebaseio.com",
+    projectId: "ia-termux",
+    storageBucket: "ia-termux.firebasestorage.app",
+    messagingSenderId: "563930488672",
+    appId: "1:563930488672:web:dc73144be15c2a3a850805"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+let autenticacaoPronta = signInAnonymously(auth);
+
 
 async function carregarAnuncios() {
 
@@ -815,10 +836,21 @@ async function excluirAnuncio(id) {
 
     try {
 
+        const usuario = auth.currentUser;
+
+        if (!usuario) {
+            throw new Error("Autenticação ainda não está pronta.");
+        }
+
+        const token = await usuario.getIdToken();
+
         const resposta = await fetch(
             "/api/anuncios/" + id,
             {
-                method: "DELETE"
+                method: "DELETE",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
             }
         );
 
@@ -924,10 +956,19 @@ async function salvarAnuncio() {
             return;
         }
 
+        const usuario = auth.currentUser;
+
+        if (!usuario) {
+            throw new Error("Autenticação ainda não está pronta.");
+        }
+
+        const token = await usuario.getIdToken();
+
         const resposta = await fetch("/api/anuncios", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
             },
             body: JSON.stringify(dados)
         });
@@ -955,7 +996,21 @@ async function salvarAnuncio() {
             erro.message
         );
     }
-}carregarAnuncios();
+}window.mostrarFormulario = mostrarFormulario;
+window.fecharFormulario = fecharFormulario;
+window.abrirAnuncio = abrirAnuncio;
+window.excluirAnuncio = excluirAnuncio;
+window.salvarAnuncio = salvarAnuncio;
+
+autenticacaoPronta
+    .then(() => carregarAnuncios())
+    .catch((erro) => {
+        console.error("Erro na autenticação anônima:", erro);
+        alert(
+            "Não foi possível iniciar a autenticação anônima.\n\n" +
+            erro.message
+        );
+    });
 
 </script>
 
