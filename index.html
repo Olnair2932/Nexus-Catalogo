@@ -604,7 +604,7 @@
         ➕ NOVO ANÚNCIO
     </button>
 
-    <button class="google-login" onclick="entrarComGoogle()">
+    <button class="google-login" id="botaoGoogle" onclick="entrarComGoogle()">
         🔵 ENTRAR COM GOOGLE
     </button>
 </div>
@@ -736,6 +736,40 @@ const auth = getAuth(app);
 
 let autenticacaoPronta = signInAnonymously(auth);
 
+function atualizarIndicadorUsuario(usuario) {
+    const botao = document.getElementById("botaoGoogle");
+
+    if (!botao || !usuario) {
+        return;
+    }
+
+    if (usuario.isAnonymous) {
+        botao.innerHTML = "🔵 ENTRAR COM GOOGLE";
+        return;
+    }
+
+    const email = usuario.email || "Conta Google";
+
+    if (usuario.photoURL) {
+        botao.innerHTML = `
+            <img
+                src="${usuario.photoURL}"
+                alt="Foto do usuário"
+                style="
+                    width: 28px;
+                    height: 28px;
+                    border-radius: 50%;
+                    vertical-align: middle;
+                    margin-right: 8px;
+                "
+            >
+            ${email}
+        `;
+    } else {
+        botao.innerHTML = `CONECTADO: ${email}`;
+    }
+}
+
 async function verificarRetornoGoogle() {
     try {
         const resultado = await getRedirectResult(auth);
@@ -745,6 +779,9 @@ async function verificarRetornoGoogle() {
                 "Conta Google vinculada com sucesso:",
                 resultado.user.uid
             );
+            atualizarIndicadorUsuario(resultado.user);
+        } else if (auth.currentUser) {
+            atualizarIndicadorUsuario(auth.currentUser);
         }
     } catch (erro) {
         console.error("Erro no retorno do Google:", erro);
