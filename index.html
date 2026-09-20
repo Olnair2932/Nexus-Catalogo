@@ -54,6 +54,17 @@
             color: #06130d;
         }
 
+        .google-login {
+            background: #ffffff;
+            color: #202124;
+            border: 1px solid #d9d9d9;
+        }
+
+        .google-login:hover {
+            background: #f5f5f5;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+        }
+
         .voltar {
             background: #202b38;
             color: white;
@@ -592,6 +603,10 @@
     <button class="novo" onclick="mostrarFormulario()">
         ➕ NOVO ANÚNCIO
     </button>
+
+    <button class="google-login" onclick="entrarComGoogle()">
+        🔵 ENTRAR COM GOOGLE
+    </button>
 </div>
 
 <main>
@@ -699,7 +714,10 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import {
     getAuth,
-    signInAnonymously
+    signInAnonymously,
+    GoogleAuthProvider,
+    linkWithRedirect,
+    getRedirectResult
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -715,7 +733,64 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
+
 let autenticacaoPronta = signInAnonymously(auth);
+
+async function verificarRetornoGoogle() {
+    try {
+        const resultado = await getRedirectResult(auth);
+
+        if (resultado && resultado.user) {
+            console.log(
+                "Conta Google vinculada com sucesso:",
+                resultado.user.uid
+            );
+        }
+    } catch (erro) {
+        console.error("Erro no retorno do Google:", erro);
+
+        if (erro.code === "auth/credential-already-in-use") {
+            alert(
+                "Esta conta Google já está vinculada a outro usuário."
+            );
+        }
+    }
+}
+
+async function entrarComGoogle() {
+    try {
+        const usuario = auth.currentUser;
+
+        if (!usuario) {
+            throw new Error("Autenticação ainda não está pronta.");
+        }
+
+        if (!usuario.isAnonymous) {
+            alert("Você já está conectado com uma conta Google.");
+            return;
+        }
+
+        const provider = new GoogleAuthProvider();
+
+        await linkWithRedirect(usuario, provider);
+
+    } catch (erro) {
+        console.error("Erro ao vincular Google:", erro);
+
+        if (erro.code === "auth/credential-already-in-use") {
+            alert(
+                "Esta conta Google já está vinculada a outro usuário."
+            );
+            return;
+        }
+
+        alert(
+            "Não foi possível entrar com Google.\n\n" +
+            erro.message
+        );
+    }
+}
+
 
 
 async function carregarAnuncios() {
@@ -1001,8 +1076,10 @@ window.fecharFormulario = fecharFormulario;
 window.abrirAnuncio = abrirAnuncio;
 window.excluirAnuncio = excluirAnuncio;
 window.salvarAnuncio = salvarAnuncio;
+window.entrarComGoogle = entrarComGoogle;
 
 autenticacaoPronta
+    .then(() => verificarRetornoGoogle())
     .then(() => carregarAnuncios())
     .catch((erro) => {
         console.error("Erro na autenticação anônima:", erro);
