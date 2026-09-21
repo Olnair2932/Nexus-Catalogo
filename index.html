@@ -466,10 +466,22 @@
 
             .acoes {
                 padding: 18px 14px;
+                justify-content: flex-start;
+                overflow-x: auto;
+                overflow-y: hidden;
+                flex-wrap: nowrap;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+
+            .acoes::-webkit-scrollbar {
+                display: none;
             }
 
             .acoes button {
-                width: 100%;
+                width: auto;
+                min-width: max-content;
+                flex: 0 0 auto;
             }
 
             main {
