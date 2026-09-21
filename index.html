@@ -726,7 +726,8 @@ import {
     signOut,
     onAuthStateChanged,
     GoogleAuthProvider,
-    linkWithPopup
+    linkWithPopup,
+    signInWithPopup
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -835,10 +836,20 @@ async function entrarComGoogle() {
         console.error("Erro ao vincular Google:", erro);
 
         if (erro.code === "auth/credential-already-in-use") {
-            alert(
-                "Esta conta Google já está vinculada a outro usuário."
-            );
-            return;
+            try {
+                const providerExistente = new GoogleAuthProvider();
+                const resultado = await signInWithPopup(auth, providerExistente);
+                atualizarIndicadorUsuario(resultado.user);
+                return;
+            } catch (erroLogin) {
+                console.error("Erro ao entrar na conta Google existente:", erroLogin);
+
+                alert(
+                    "Não foi possível entrar na conta Google existente.\n\n" +
+                    erroLogin.message
+                );
+                return;
+            }
         }
 
         alert(
