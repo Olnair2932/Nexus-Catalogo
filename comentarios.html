@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💬 Comentários — Nexus Catálogo</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            color: #202b38;
+        }
+
+        .container {
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: #202b38;
+            color: white;
+            padding: 22px;
+            border-radius: 14px;
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        header h1 {
+            margin: 0 0 8px;
+        }
+
+        header p {
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        .acoes {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .acoes button {
+            border: 0;
+            border-radius: 10px;
+            padding: 12px 16px;
+            background: #202b38;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .status {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 14px;
+            text-align: center;
+        }
+
+        .comentario {
+            background: white;
+            border-radius: 14px;
+            padding: 17px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .nome {
+            font-weight: bold;
+            font-size: 17px;
+            margin-bottom: 6px;
+        }
+
+        .texto {
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            line-height: 1.5;
+        }
+
+        .data {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #68727d;
+        }
+
+        .vazio {
+            background: white;
+            border-radius: 14px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 12px;
+            }
+
+            header {
+                padding: 18px 14px;
+            }
+
+            .acoes button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <header>
+        <h1>💬 Comentários</h1>
+        <p>O que as pessoas estão dizendo sobre o Nexus Catálogo</p>
+    </header>
+
+    <div class="acoes">
+        <button type="button" onclick="window.location.href='./index.html'">
+            ← VOLTAR
+        </button>
+    </div>
+
+    <div id="status" class="status">
+        Carregando comentários...
+    </div>
+
+    <div id="listaComentarios"></div>
+
+</div>
+
+<script>
+async function carregarComentarios() {
+    const status = document.getElementById("status");
+    const lista = document.getElementById("listaComentarios");
+
+    try {
+        const resposta = await fetch("/api/comentarios", {
+            cache: "no-store"
+        });
+
+        const dados = await resposta.json();
+
+        if (!resposta.ok || !dados.ok) {
+            throw new Error(
+                dados.erro || "Não foi possível carregar os comentários."
+            );
+        }
+
+        lista.innerHTML = "";
+
+        if (!Array.isArray(dados.comentarios) || dados.comentarios.length === 0) {
+            status.textContent = "Ainda não há comentários.";
+            lista.innerHTML = `
+                <div class="vazio">
+                    Seja o primeiro a deixar um comentário sobre o Nexus Catálogo.
+                </div>
+            `;
+            return;
+        }
+
+        status.textContent =
+            `${dados.comentarios.length} comentário(s)`;
+
+        dados.comentarios.forEach(item => {
+            const card = document.createElement("article");
+            card.className = "comentario";
+
+            const nome = document.createElement("div");
+            nome.className = "nome";
+            nome.textContent = item.nome || "Visitante";
+
+            const texto = document.createElement("div");
+            texto.className = "texto";
+            texto.textContent = item.comentario || "";
+
+            const data = document.createElement("div");
+            data.className = "data";
+
+            if (item.criado_em) {
+                const dataObj = new Date(item.criado_em);
+
+                if (!Number.isNaN(dataObj.getTime())) {
+                    data.textContent =
+                        dataObj.toLocaleString("pt-BR");
+                }
+            }
+
+            card.appendChild(nome);
+            card.appendChild(texto);
+
+            if (data.textContent) {
+                card.appendChild(data);
+            }
+
+            lista.appendChild(card);
+        });
+
+    } catch (erro) {
+        console.error(erro);
+
+        status.textContent =
+            "Não foi possível carregar os comentários.";
+
+        lista.innerHTML = `
+            <div class="vazio">
+                Tente novamente mais tarde.
+            </div>
+        `;
+    }
+}
+
+carregarComentarios();
+</script>
+
+</body>
+</html>
