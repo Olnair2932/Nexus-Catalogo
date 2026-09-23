@@ -205,6 +205,10 @@ class CatalogoHandler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
 
+        if self.path == "/api/comentarios":
+            self._rota_comentarios_post()
+            return
+
         if self.path == "/api/upload-imagem":
             content_type = self.headers.get("Content-Type", "")
 
@@ -572,6 +576,244 @@ class CatalogoHandler(SimpleHTTPRequestHandler):
         self.wfile.write(resposta)
 
 
+    def _responder_json(self, dados, status=200):
+        resposta = json.dumps(
+            dados,
+            ensure_ascii=False
+        ).encode("utf-8")
+
+        self.send_response(status)
+        self.send_header(
+            "Content-Type",
+            "application/json; charset=utf-8"
+        )
+        self.send_header(
+            "Content-Length",
+            str(len(resposta))
+        )
+        self.end_headers()
+        self.wfile.write(resposta)
+
+
+    def _ler_corpo_json(self):
+        tamanho = int(
+            self.headers.get("Content-Length", "0")
+        )
+
+        if tamanho <= 0 or tamanho > 10000:
+            return None
+
+        corpo = self.rfile.read(tamanho)
+
+        try:
+            return json.loads(
+                corpo.decode("utf-8")
+            )
+        except Exception:
+            return None
+
+
+    def _rota_comentarios_post(self):
+        dados = self._ler_corpo_json()
+
+        if not isinstance(dados, dict):
+            self._responder_json(
+                {
+                    "ok": False,
+                    "erro": "Dados inválidos."
+                },
+                400
+            )
+            return
+
+        nome = str(
+            dados.get("nome", "")
+        ).strip()
+
+        comentario = str(
+            dados.get("comentario", "")
+        ).strip()
+
+        if not nome:
+            self._responder_json(
+                {
+                    "ok": False,
+                    "erro": "Informe seu nome."
+                },
+                400
+            )
+            return
+
+        if not comentario:
+            self._responder_json(
+                {
+                    "ok": False,
+                    "erro": "Informe seu comentário."
+                },
+                400
+            )
+            return
+
+        if len(nome) > 80:
+            self._responder_json(
+                {
+                    "ok": False,
+                    "erro": "O nome deve ter no máximo 80 caracteres."
+                },
+                400
+            )
+            return
+
+        if len(comentario) > 500:
+            self._responder_json(
+                {
+                    "ok": False,
+                    "erro": "O comentário deve ter no máximo 500 caracteres."
+                },
+                400
+            )
+            return
+
+        try:
+            registro = {
+                "nome": nome,
+                "comentario": comentario,
+                "criado_em": __import__("datetime").datetime.now(
+                    __import__("datetime").timezone.utc
+                ).isoformat()
+            }
+
+            if FIREBASE_SERVICE_ACCOUNT_JSON:
+                referencia = db.reference(
+                    "nexus_catalogo/comentarios"
+                )
+
+                novo = referencia.push(
+                    registro
+                )
+
+                registro["id"] = novo.key
+
+            else:
+                pasta = BASE / "dados"
+                arquivo = pasta / "comentarios.json"
+
+                pasta.mkdir(
+                    parents=True,
+                    exist_ok=True
+                )
+
+                try:
+                    comentarios = json.loads(
+                        arquivo.read_text(
+                            encoding="utf-8"
+                        )
+                    )
+
+                    if not isinstance(comentarios, list):
+                        comentarios = []
+
+                except Exception:
+                    comentarios = []
+
+                registro["id"] = str(
+                    uuid.uuid4()
+                )
+
+                comentarios.append(
+                    registro
+                )
+
+                arquivo.write_text(
+                    json.dumps(
+                        comentarios,
+                        ensure_ascii=False,
+                        indent=2
+                    ),
+                    encoding="utf-8"
+                )
+
+        except Exception as erro:
+            self._responder_json(
+                {
+                    "ok": False,
+                    "erro": f"Erro ao salvar comentário: {erro}"
+                },
+                500
+            )
+            return
+
+        self._responder_json(
+            {
+                "ok": True,
+                "comentario": registro
+            },
+            201
+        )
+
+
+    def _rota_comentarios_get(self):
+        try:
+            if FIREBASE_SERVICE_ACCOUNT_JSON:
+                dados = db.reference(
+                    "nexus_catalogo/comentarios"
+                ).get()
+
+                if isinstance(dados, dict):
+                    comentarios = []
+
+                    for chave, valor in dados.items():
+                        if isinstance(valor, dict):
+                            item = dict(valor)
+                            item["id"] = chave
+                            comentarios.append(item)
+                else:
+                    comentarios = []
+
+            else:
+                arquivo = (
+                    BASE
+                    / "dados"
+                    / "comentarios.json"
+                )
+
+                if arquivo.exists():
+                    comentarios = json.loads(
+                        arquivo.read_text(
+                            encoding="utf-8"
+                        )
+                    )
+
+                    if not isinstance(comentarios, list):
+                        comentarios = []
+                else:
+                    comentarios = []
+
+            comentarios.sort(
+                key=lambda item: str(
+                    item.get("criado_em", "")
+                ),
+                reverse=True
+            )
+
+        except Exception as erro:
+            self._responder_json(
+                {
+                    "ok": False,
+                    "erro": f"Erro ao carregar comentários: {erro}"
+                },
+                500
+            )
+            return
+
+        self._responder_json(
+            {
+                "ok": True,
+                "comentarios": comentarios
+            }
+        )
+
+
     def do_DELETE(self):
 
         prefixo = "/api/anuncios/"
@@ -694,6 +936,10 @@ class CatalogoHandler(SimpleHTTPRequestHandler):
 
 
     def do_GET(self):
+
+        if self.path == "/api/comentarios":
+            self._rota_comentarios_get()
+            return
 
         if self.path.startswith("/anuncios/"):
 
