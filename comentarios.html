@@ -129,7 +129,23 @@
         </button>
     </div>
 
-    <div id="status" class="status">
+    <section class="formulario">
+    <h2>✍️ Deixe seu comentário</h2>
+
+    <input id="nome" type="text" maxlength="80"
+           placeholder="Seu nome" autocomplete="name">
+
+    <textarea id="comentario" maxlength="500"
+              placeholder="Escreva seu comentário"></textarea>
+
+    <button id="btnEnviar" type="button" onclick="enviarComentario()">
+        📤 ENVIAR COMENTÁRIO
+    </button>
+
+    <div id="mensagem"></div>
+</section>
+
+<div id="status" class="status">
         Carregando comentários...
     </div>
 
@@ -138,6 +154,64 @@
 </div>
 
 <script>
+async function enviarComentario() {
+    const nome = document.getElementById("nome");
+    const comentario = document.getElementById("comentario");
+    const botao = document.getElementById("btnEnviar");
+    const mensagem = document.getElementById("mensagem");
+
+    const nomeValor = nome.value.trim();
+    const comentarioValor = comentario.value.trim();
+
+    mensagem.textContent = "";
+
+    if (!nomeValor) {
+        mensagem.textContent = "Informe seu nome.";
+        nome.focus();
+        return;
+    }
+
+    if (!comentarioValor) {
+        mensagem.textContent = "Informe seu comentário.";
+        comentario.focus();
+        return;
+    }
+
+    botao.disabled = true;
+    botao.textContent = "⏳ ENVIANDO...";
+
+    try {
+        const resposta = await fetch("/api/comentarios", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                nome: nomeValor,
+                comentario: comentarioValor
+            })
+        });
+
+        const dados = await resposta.json();
+
+        if (!resposta.ok || !dados.ok) {
+            throw new Error(dados.erro || "Não foi possível enviar o comentário.");
+        }
+
+        nome.value = "";
+        comentario.value = "";
+        mensagem.textContent = "✅ Comentário enviado com sucesso.";
+
+        await carregarComentarios();
+    } catch (erro) {
+        console.error(erro);
+        mensagem.textContent = "❌ Não foi possível enviar o comentário.";
+    } finally {
+        botao.disabled = false;
+        botao.textContent = "📤 ENVIAR COMENTÁRIO";
+    }
+}
+
 async function carregarComentarios() {
     const status = document.getElementById("status");
     const lista = document.getElementById("listaComentarios");
