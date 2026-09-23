@@ -592,6 +592,10 @@ class CatalogoHandler(SimpleHTTPRequestHandler):
             "application/json; charset=utf-8"
         )
         self.send_header(
+            "Access-Control-Allow-Origin",
+            "https://ia-termux.web.app"
+        )
+        self.send_header(
             "Content-Length",
             str(len(resposta))
         )
