@@ -1,6 +1,6 @@
 🛍️ Nexus Catálogo
 
-Catálogo online de anúncios desenvolvido para publicação e gerenciamento de produtos.
+Catálogo online de anúncios desenvolvido para publicação, divulgação e gerenciamento de produtos e serviços.
 
 O Nexus Catálogo permite que usuários autenticados criem seus próprios anúncios, visualizem os produtos cadastrados e removam apenas os anúncios que pertencem à própria conta.
 
@@ -21,8 +21,23 @@ O Nexus Catálogo permite que usuários autenticados criem seus próprios anúnc
 - 📍 Endereço para retirada
 - 🚚 Taxa de entrega
 - 💳 Forma de pagamento
+- 📱 Carrossel de botões no celular
+- 🛍️ Acesso à vitrine pública
+- 🔏 Termos, Política de Privacidade e Desenvolvimento
+- 🤖 Desenvolvimento com auxílio de ferramentas de Inteligência Artificial
 - 🔥 Firebase Realtime Database
 - ☁️ Hospedagem no Render
+
+🔏 Termos, Privacidade e Desenvolvimento
+
+O projeto disponibiliza uma página institucional com:
+
+- 📋 Termos e Condições
+- 🔐 Política de Privacidade
+- 👨‍💻 Informações sobre o desenvolvimento do projeto
+- 🤖 Informação sobre o uso de ferramentas de Inteligência Artificial
+
+O Nexus Catálogo foi desenvolvido por Olnair Gonzaga Pereira, com auxílio de ferramentas de Inteligência Artificial.
 
 🔐 Segurança
 
@@ -100,6 +115,10 @@ Aplicação:
 
 https://nexus-catalogo.onrender.com
 
+Vitrine pública:
+
+https://ia-termux.web.app
+
 Repositório:
 
 https://github.com/Olnair2932/Nexus-Catalogo
@@ -137,6 +156,7 @@ As credenciais de produção devem ser configuradas através das variáveis de a
 Nexus-Catalogo/
 ├── app.py
 ├── index.html
+├── termos.html
 ├── dados/
 ├── anuncios/
 └── README.md
